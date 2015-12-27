@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Verny Jump</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+	var canvas = document.getElementById("myCanvas");
+	var ctx = canvas.getContext("2d");
+	ctx.canvas.width = window.innerWidth;
+	ctx.canvas.height = window.innerHeight;
+	
+	var y = canvas.height/4;
+	var dy = 0;
+	var spacePressed = false;
+	var wasSpacePressed = false;
+	
+	var x = canvas.width * 2 / 3;
+	var dx = 2;
+	
+	var score = 0;
+	var isGameOver = true;
+	
+	var image = new Image();
+	image.src = 'http://vernyjump.site88.net/vernCutout.png';
+	
+	var barriers = [-300, -200, -100];
+	
+	function drawVern(image, yOffset) {
+		ctx.drawImage(image, canvas.width / 3, y, 75, 200);
+	}
+	
+	function drawBarrier(xOffset, yOffset) {
+		ctx.beginPath();
+		ctx.rect(xOffset, yOffset, 50, canvas.height / 2);
+		ctx.fillStyle = "#FF0000";
+		ctx.fill();
+		ctx.closePath();
+		ctx.beginPath();
+		ctx.rect(xOffset, yOffset + canvas.height, 50, canvas.height / 2);
+		ctx.fillStyle = "#FF0000";
+		ctx.fill();
+		ctx.closePath();
+	}
+	
+	function drawScore() {
+		ctx.fillStyle = "#000000";
+		ctx.font = "60px Arial";
+		ctx.fillText("Score: ".concat(score), canvas.width - 300, 60);
+	}
+	
+	function init() {
+		isGameOver = false;
+		y = canvas.height/4;
+		dy = 0;
+		x = canvas.width * 2 / 3;
+		dx = 2;
+		score = 0;
+		
+		barriers = [-300, -200, -100];
+	}
+	
+	function update() {
+		if (isGameOver) {
+			if (!wasSpacePressed && spacePressed) {
+				init();
+			}
+		} else {
+			y += dy;
+			dy += 0.2;
+			if (y < 0 || y + 200 > canvas.height) {
+				gameOver();
+				return;
+			}
+			
+			if (canvas.width / 3 + 75 > x && canvas.width / 3 < x + 50) {
+				if (y < barriers[0] + canvas.height / 2 ||
+					y + 200 > barriers[0] + canvas.height) {
+					gameOver();
+					return;
+				}
+			}
+			
+			x -= dx;
+			dx += 0.001;
+			
+			if (x <= -50) {
+				x += canvas.width / 2;
+				barriers[0] = barriers[1];
+				barriers[1] = barriers[2];
+				barriers[2] = -500 + Math.floor((Math.random() * 400) + 1);
+				score++;
+			}
+			if (!wasSpacePressed && spacePressed) {
+				dy = -8;
+			}
+		}
+		wasSpacePressed = spacePressed;
+	}
+	
+	function draw() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		drawVern(image, y);
+		drawBarrier(x, barriers[0]);
+		drawBarrier(x + canvas.width / 2, barriers[1]);
+		drawBarrier(x + canvas.width, barriers[2]);
+		drawScore();
+	}
+	
+	document.addEventListener("keydown", keyDownHandler, false);
+	document.addEventListener("keyup", keyUpHandler, false);
+	function keyDownHandler(e) {
+		if(e.keyCode == 32) { // 32 is spacebar
+			spacePressed = true;
+		}
+	}
+
+	function keyUpHandler(e) {
+		if(e.keyCode == 32) { // 32 is spacebar
+			spacePressed = false;
+		}
+	}
+	
+	function gameOver() {
+		isGameOver = true;
+	}
+	
+	var updateCall = setInterval(update, 10);
+	var drawCall = setInterval(draw, 10);
+</script>
+
+</body>
+</html>
